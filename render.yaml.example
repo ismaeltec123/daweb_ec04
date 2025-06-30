@@ -1,0 +1,31 @@
+services:
+  # Backend API service
+  - type: web
+    name: ec04-backend
+    env: node
+    buildCommand: npm install && npm run render-build
+    startCommand: npm run render-start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ec04-db
+          property: connectionString
+
+  # Frontend web service (opcional, configura si despliegas frontend a través de Render)
+  # - type: web
+  #   name: ec04-frontend
+  #   env: node
+  #   buildCommand: cd frontend && npm install && npm run build
+  #   startCommand: cd frontend && npm start
+  #   envVars:
+  #     - key: NEXT_PUBLIC_API_URL
+  #       value: https://ec04-backend.onrender.com/api
+
+databases:
+  - name: ec04-db
+    databaseName: ec04_db
+    plan: free

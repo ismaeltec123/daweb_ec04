@@ -6,6 +6,16 @@ import Link from 'next/link';
 import { getCursoById, updateCurso, deleteCurso } from '@/lib/api';
 import Button from '@/components/Button';
 import withAuth from '@/components/withAuth';
+import { Curso } from '@/types';
+
+interface FormData {
+  titulo: string;
+  descripcion: string;
+  imagen: string;
+  duracion: string;
+  nivel: string;
+  activo: boolean;
+}
 
 function EditarCurso({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -14,7 +24,7 @@ function EditarCurso({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState(true);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [error, setError] = useState('');
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     titulo: '',
     descripcion: '',
     imagen: '',
@@ -32,13 +42,13 @@ function EditarCurso({ params }: { params: { id: string } }) {
           titulo: curso.titulo || '',
           descripcion: curso.descripcion || '',
           imagen: curso.imagen || '',
-          duracion: curso.duracion || '',
+          duracion: curso.duracion?.toString() || '',
           nivel: curso.nivel || 'Principiante',
           activo: curso.activo !== undefined ? curso.activo : true
         });
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Error al obtener el curso:', error);
-        setError(error.message || 'Error al cargar el curso');
+        setError(error instanceof Error ? error.message : 'Error al cargar el curso');
       } finally {
         setLoading(false);
       }
@@ -77,9 +87,9 @@ function EditarCurso({ params }: { params: { id: string } }) {
       
       await updateCurso(id, formData);
       router.push('/dashboard');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error al actualizar el curso:', error);
-      setError(error.message || 'Error al actualizar el curso');
+      setError(error instanceof Error ? error.message : 'Error al actualizar el curso');
     } finally {
       setLoading(false);
     }
@@ -91,9 +101,9 @@ function EditarCurso({ params }: { params: { id: string } }) {
         setDeleteLoading(true);
         await deleteCurso(id);
         router.push('/dashboard');
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Error al eliminar el curso:', error);
-        setError(error.message || 'Error al eliminar el curso');
+        setError(error instanceof Error ? error.message : 'Error al eliminar el curso');
         setDeleteLoading(false);
       }
     }

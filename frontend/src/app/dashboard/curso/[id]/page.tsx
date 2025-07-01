@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { getCursoById, actualizarProgreso, getMisInscripciones } from '@/lib/api';
 import Button from '@/components/Button';
 import withAuth from '@/components/withAuth';
+import { Curso, Inscripcion } from '@/types';
 
 function DetalleCurso({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -13,8 +15,8 @@ function DetalleCurso({ params }: { params: { id: string } }) {
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [curso, setCurso] = useState<any>(null);
-  const [inscripcion, setInscripcion] = useState<any>(null);
+  const [curso, setCurso] = useState<Curso | null>(null);
+  const [inscripcion, setInscripcion] = useState<Inscripcion | null>(null);
   const [nuevoProgreso, setNuevoProgreso] = useState<number>(0);
   const [actualizando, setActualizando] = useState(false);
 
@@ -29,7 +31,7 @@ function DetalleCurso({ params }: { params: { id: string } }) {
         
         // Obtener la inscripción del usuario para este curso
         const inscripciones = await getMisInscripciones();
-        const miInscripcion = inscripciones.find((insc: any) => insc.CursoId === parseInt(id));
+        const miInscripcion = inscripciones.find((insc: Inscripcion) => insc.CursoId === parseInt(id));
         
         if (miInscripcion) {
           setInscripcion(miInscripcion);
@@ -38,9 +40,9 @@ function DetalleCurso({ params }: { params: { id: string } }) {
           // Si no está inscrito, redirigir al dashboard
           router.push('/dashboard');
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Error al cargar el curso:', error);
-        setError(error.message || 'Error al cargar el curso');
+        setError(error instanceof Error ? error.message : 'Error al cargar el curso');
       } finally {
         setLoading(false);
       }
@@ -66,13 +68,13 @@ function DetalleCurso({ params }: { params: { id: string } }) {
       setInscripcion({
         ...inscripcion,
         progreso: nuevoProgreso,
-        estado: nuevoEstado
+        estado: nuevoEstado as 'activo' | 'completado' | 'cancelado'
       });
       
       alert('Progreso actualizado correctamente');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error al actualizar el progreso:', error);
-      setError(error.message || 'Error al actualizar el progreso');
+      setError(error instanceof Error ? error.message : 'Error al actualizar el progreso');
     } finally {
       setActualizando(false);
     }
@@ -120,11 +122,16 @@ function DetalleCurso({ params }: { params: { id: string } }) {
         
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           {curso.imagen ? (
-            <img 
-              src={curso.imagen} 
-              alt={curso.titulo} 
-              className="w-full h-64 object-cover"
-            />
+            <div className="relative w-full h-64">
+              <Image 
+                src={curso.imagen}
+                alt={curso.titulo}
+                fill
+                sizes="(max-width: 768px) 100vw, 768px"
+                className="object-cover"
+                priority
+              />
+            </div>
           ) : (
             <div className="w-full h-64 bg-gray-200 flex items-center justify-center">
               <span className="text-gray-400">Sin imagen</span>
